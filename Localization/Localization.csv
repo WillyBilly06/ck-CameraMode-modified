@@ -17,14 +17,11 @@ CameraMode:Functions/Close	Text		Close
 CameraMode:Functions/CloseDesc	Text		Exit camera mode.												
 CameraMode:InCameraMode	Text		Camera mode												
 CameraMode:SavedCapture	Text		Saved as {0}												
-CameraMode:CaptureResolution	Text		Resolution scale												
-CameraMode:CaptureQuality	Text		Quality												
+CameraMode:CaptureResolution	Text		Capture resolution												
+CameraMode:CaptureQuality	Text		Capture quality												
 CameraMode:CaptureQuality/Uncompressed	Text		Uncompressed												
 CameraMode:CaptureQuality/Compressed	Text		Compressed												
-CameraMode:CaptureLighting	Text		Lighting												
-CameraMode:CaptureLighting/Normal	Text		Normal												
-CameraMode:CaptureLighting/Fullbright	Text		Fullbright												
+CameraMode:CaptureEntities	Text		Capture entities												
 CameraMode:CaptureStopped	Text		Capture stopped												
 CameraMode:DisabledReason/NoFrameSet	Text		A frame hasn't been set.												
-ControlMapper/CameraModeCategory	Text		Camera Mode												
-ControlMapper/CameraMode:ToggleCameraModePC	Text		Toggle camera mode												
+CameraMode:WaitTime	Text		Wait: {0}s
