@@ -69,9 +69,9 @@ namespace CameraMode.Capture {
 	}
 	
 	public class FrameCapture : CaptureBase, IDisposable {
-		// Memory limits
-		private const long MaxFinalImageBytes = 1024L * 1024L * 1024L; // 1GB for final image
-		private const int MaxFinalDimension = 16384; // Max texture dimension in Unity
+		// Memory limits - increased for high quality captures
+		private const long MaxFinalImageBytes = 4L * 1024L * 1024L * 1024L; // 4GB for final image
+		private const int MaxFinalDimension = 65536; // Increased max dimension (will be handled by chunked encoding)
 
 		public override float Progress => (float) _areasCaptured / _totalSteps;
 		public override float2 DetailedProgress => new(_areasCaptured, _areasToCapture);
@@ -113,7 +113,7 @@ namespace CameraMode.Capture {
 				Mathf.CeilToInt((frameSize.y * Constants.PIXELS_PER_UNIT_F) / Constants.kScreenPixelHeight)
 			);
 			
-			// Calculate the effective resolution scale based on final image size limits
+			// Always use the user-selected resolution scale - no auto-downscaling
 			var effectiveResScale = captureResScale;
 			var chunkSize = new int2(
 				Constants.kScreenPixelWidth * effectiveResScale,
@@ -121,30 +121,8 @@ namespace CameraMode.Capture {
 			);
 			var outputSize = new int2(chunks.x * chunkSize.x, chunks.y * chunkSize.y);
 			
-			// Auto-reduce resolution if final image would be too large
-			while (effectiveResScale > 1 && 
-			       ((long)outputSize.x * outputSize.y * 4 > MaxFinalImageBytes || 
-			        outputSize.x > MaxFinalDimension || outputSize.y > MaxFinalDimension)) {
-				effectiveResScale--;
-				chunkSize = new int2(
-					Constants.kScreenPixelWidth * effectiveResScale,
-					Constants.kScreenPixelHeight * effectiveResScale
-				);
-				outputSize = new int2(chunks.x * chunkSize.x, chunks.y * chunkSize.y);
-			}
-			
-			// If still too large at 1x, we need to downsample each tile
+			// No downsampling - always capture at full selected resolution
 			var downsampleFactor = 1;
-			while ((long)outputSize.x * outputSize.y * 4 > MaxFinalImageBytes || 
-			       outputSize.x > MaxFinalDimension || outputSize.y > MaxFinalDimension) {
-				downsampleFactor++;
-				var reducedChunkSize = new int2(
-					Mathf.Max(Constants.kScreenPixelWidth / downsampleFactor, 64),
-					Mathf.Max(Constants.kScreenPixelHeight / downsampleFactor, 64)
-				);
-				outputSize = new int2(chunks.x * reducedChunkSize.x, chunks.y * reducedChunkSize.y);
-				chunkSize = reducedChunkSize;
-			}
 			
 			var screenUnitSize = new float2(
 				Constants.kScreenPixelWidth / Constants.PIXELS_PER_UNIT_F,
@@ -152,9 +130,7 @@ namespace CameraMode.Capture {
 			);
 			
 			var finalMemoryMB = (long)outputSize.x * outputSize.y * 4 / (1024 * 1024);
-			if (effectiveResScale != captureResScale || downsampleFactor > 1) {
-				Utils.DisplayChatMessage($"Large area: auto-adjusted to fit ({outputSize.x}x{outputSize.y}, {finalMemoryMB}MB)");
-			}
+			Utils.DisplayChatMessage($"Capturing at {effectiveResScale}x resolution ({outputSize.x}x{outputSize.y}, ~{finalMemoryMB}MB)");
 			
 			yield return null;
 
